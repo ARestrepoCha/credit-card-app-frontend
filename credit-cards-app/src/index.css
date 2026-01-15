@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* Eliminamos los estilos por defecto de Vite para que Tailwind mande */
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background-color: #0f172a;
+}
+
+/* Opcional: Para que el scroll sea suave */
+html {
+  scroll-behavior: smooth;
+}
