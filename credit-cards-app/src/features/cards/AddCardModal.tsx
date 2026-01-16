@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form';
-import { X, ShieldCheck, Lock } from 'lucide-react';
+import { X, ShieldCheck } from 'lucide-react';
 import { useEffect } from 'react';
 
 interface Props {

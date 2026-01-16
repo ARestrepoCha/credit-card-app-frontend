@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CreditCard, LogOut, Menu, X, ArrowRightLeft, UserCircle } from 'lucide-react';
+import { CreditCard, LogOut, Menu, X, UserCircle } from 'lucide-react';
 
 interface Props {
   children: React.ReactNode;
@@ -11,7 +11,6 @@ export const DashboardLayout = ({ children, onLogout }: Props) => {
   const [userName, setUserName] = useState('Usuario');
 
   useEffect(() => {
-    // Recuperamos el nombre del usuario guardado en el Login
     const userData = localStorage.getItem('user');
     if (userData) {
       const user = JSON.parse(userData);
@@ -20,8 +19,7 @@ export const DashboardLayout = ({ children, onLogout }: Props) => {
   }, []);
 
   const menuItems = [
-    { icon: <CreditCard size={22} />, label: 'Mis Tarjetas' },
-    { icon: <ArrowRightLeft size={22} />, label: 'Transacciones' }, // Icono para transacciones
+    { icon: <CreditCard size={22} />, label: 'Mis Tarjetas' }
   ];
 
   return (

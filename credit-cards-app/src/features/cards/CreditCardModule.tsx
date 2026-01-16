@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Plus, CreditCard as CardIcon, Edit2, RefreshCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { 
+  Plus, 
+  CreditCard as CardIcon, 
+  Edit2, 
+  RefreshCcw, 
+  ChevronLeft, 
+  ChevronRight, 
+  ShoppingBag 
+} from 'lucide-react';
 import { cardService } from './cardService';
 import { AddCardModal } from './AddCardModal';
+import { TransactionHistory } from '../payments/TransactionHistory';
 import toast from 'react-hot-toast';
 
 export const CreditCardModule = () => {
@@ -9,10 +18,11 @@ export const CreditCardModule = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // ESTADO PARA EDICIÓN
+  // ESTADOS PARA NAVEGACIÓN Y EDICIÓN
+  const [view, setView] = useState<'LIST' | 'HISTORY'>('LIST');
   const [selectedCard, setSelectedCard] = useState<any>(null);
   
-  // ESTADOS PARA PAGINACIÓN
+  // ESTADOS PARA PAGINACIÓN DE TARJETAS
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -29,7 +39,7 @@ export const CreditCardModule = () => {
 
   useEffect(() => { fetchCards(); }, []);
 
-  // Lógica de Paginación
+  // Lógica de Paginación Local para la lista de tarjetas
   const totalPages = Math.ceil(cards.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -40,15 +50,12 @@ export const CreditCardModule = () => {
     const loadId = toast.loading(selectedCard ? 'Actualizando...' : 'Guardando...');
     try {
       if (selectedCard) {
-        // Modo Edición
         await cardService.update(selectedCard.id, formData);
         toast.success("Tarjeta actualizada", { id: loadId });
       } else {
-        // Modo Creación
         await cardService.create(formData);
         toast.success("Tarjeta agregada", { id: loadId });
       }
-      
       closeModal();
       fetchCards();
     } catch (error) {
@@ -56,7 +63,6 @@ export const CreditCardModule = () => {
     }
   };
 
-  // CAMBIAR ESTADO (Active/Inactive)
   const handleToggleStatus = async (id: string) => {
     const loadId = toast.loading('Cambiando estado...');
     try {
@@ -69,26 +75,37 @@ export const CreditCardModule = () => {
   };
 
   const openEditModal = async (id: string) => {
-   const loadId = toast.loading('Cargando información detallada...');
-   try {
-     const response = await cardService.getById(id);
-     
-     if (response.status && response.data) {
-       setSelectedCard(response.data);
-       setIsModalOpen(true);
-       toast.dismiss(loadId);
-     } else {
-       toast.error("No se pudo obtener el detalle", { id: loadId });
-     }
-   } catch (error) {
-     toast.error("Error de conexión al obtener datos", { id: loadId });
-   }
- };
+    const loadId = toast.loading('Cargando información detallada...');
+    try {
+      const response = await cardService.getById(id);
+      if (response.status && response.data) {
+        setSelectedCard(response.data);
+        setIsModalOpen(true);
+        toast.dismiss(loadId);
+      }
+    } catch (error) {
+      toast.error("Error al obtener datos", { id: loadId });
+    }
+  };
 
   const closeModal = () => {
     setSelectedCard(null);
     setIsModalOpen(false);
   };
+
+  // VISTA DE HISTORIAL
+  if (view === 'HISTORY') {
+    return (
+      <TransactionHistory 
+        card={selectedCard} 
+        onBack={() => {
+          setView('LIST');
+          setSelectedCard(null);
+          fetchCards();
+        }} 
+      />
+    );
+  }
 
   if (loading) return <div className="p-10 text-center font-bold text-slate-400 animate-pulse">Cargando tarjetas...</div>;
 
@@ -140,13 +157,23 @@ export const CreditCardModule = () => {
                     </td>
                     <td className="p-4">
                       <div className="flex justify-center gap-2">
+                        {/* Botón Ver Historial / Comprar */}
                         <button 
-                         onClick={() => openEditModal(card.id)} // Pasamos solo el ID
-                         className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors"
-                         title="Editar"
-                       >
-                         <Edit2 size={18} />
-                       </button>
+                          onClick={() => { setSelectedCard(card); setView('HISTORY'); }}
+                          className="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-colors border border-transparent hover:border-emerald-100"
+                          title="Pagos e Historial"
+                        >
+                          <ShoppingBag size={18} />
+                        </button>
+
+                        <button 
+                          onClick={() => openEditModal(card.id)}
+                          className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                          title="Editar"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                        
                         <button 
                           onClick={() => handleToggleStatus(card.id)}
                           className={`p-2 rounded-lg transition-colors border border-transparent ${card.isActive ? 'hover:bg-red-50 text-red-400 hover:text-red-600' : 'hover:bg-emerald-50 text-emerald-400 hover:text-emerald-600'}`} 
